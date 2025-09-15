@@ -1,0 +1,45 @@
+services:
+  vscode:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        UV_VERSION: latest
+    command: "sleep infinity"
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    user: vscode
+    volumes:
+      - ..:/workspace:cached
+    restart: unless-stopped
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 1
+  db:
+    image: postgres:17.6
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -h localhost"]
+      interval: 10s # Intervalo entre cada prueba (30 segundos)
+      retries: 1 # Número de intentos fallidos antes de marcar el contenedor como "no saludable"
+      start_period: 10s # Tiempo de espera antes de empezar a realizar pruebas
+      timeout: 5s # Tiempo máximo para que cada prueba termine
+
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+
+volumes:
+  pgdata:
