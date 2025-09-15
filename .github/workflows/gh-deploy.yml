@@ -1,0 +1,54 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/gh-deploy.yml"
+      - "docs"
+      - ".python-version"
+      - "mkdocs.yml"
+      - "pyproject.toml"
+      - "uv.lock"
+
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/gh-deploy.yml"
+      - "docs"
+      - ".python-version"
+      - "mkdocs.yml"
+      - "pyproject.toml"
+      - "uv.lock"
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Configure Git Credentials
+        uses: ./.github/actions/setup-git-config
+        with:
+          name: github-actions[bot]
+          email: 41898282+github-actions[bot]@users.noreply.github.com
+
+      - name: Setup Python with uv
+        uses: ./.github/actions/setup-python-with-uv
+
+      - name: Generate cache id
+        run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+
+      - name: Save cache
+        uses: actions/cache@v4
+        with:
+          key: mkdocs-material-${{ env.cache_id }}
+          path: .cache
+          restore-keys: mkdocs-material-
+
+      - run: uv run mkdocs gh-deploy --force
