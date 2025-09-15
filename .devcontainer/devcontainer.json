@@ -1,8 +1,7 @@
 {
   "name": "uv",
   "dockerComposeFile": "compose.yml",
-  "service": "vscode",
-  // "runServices": ["vscode"],
+  "service": "app",
   "workspaceFolder": "/workspace",
   "features": {
     "ghcr.io/dhoeric/features/hadolint:1": {}
