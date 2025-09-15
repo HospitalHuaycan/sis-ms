@@ -29,7 +29,8 @@
         "Gruntfuggly.todo-tree",
         "usernamehw.errorlens",
         "esbenp.prettier-vscode",
-        "google.geminicodeassist"
+        "google.geminicodeassist",
+        "the0807.uv-toolkit"
       ]
     }
   },
