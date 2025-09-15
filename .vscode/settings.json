@@ -67,5 +67,5 @@
     "editor.insertSpaces": true,
     "editor.tabSize": 2
   },
-  "conventionalCommits.scopes": ["deps"]
+  "conventionalCommits.scopes": ["deps", "configuration"]
 }
