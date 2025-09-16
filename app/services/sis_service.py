@@ -39,24 +39,39 @@ class SISService:
 
     async def get_session(
         self, request: CredencialesRequest
-    ) -> Result[str, BaseExceptionCode]:
+    ) -> Result[str, tuple[BaseExceptionCode, int]]:
         """Obtener token de sesión del SIS."""
         try:
             response: str = self.client.service.GetSession(
                 strUsuario=request.usuario, strClave=request.clave
             )
-
+            # TODO(davidreygu): Falta validar mas errores. Ver ticket #1
             error_messages = ["INVALIDO", "INCORRECTA"]
             if not isinstance(response, str):
-                return Err(CustomExceptionCode.BAD_RESPONSE)
+                return Err(
+                    (
+                        CustomExceptionCode.BAD_RESPONSE,
+                        status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
+                )
 
             if any(msg in response for msg in error_messages):
                 self._session_token = None
                 logger.info("Credenciales inválidas")
-                return Err(CustomExceptionCode.INVALID_CREDENTIALS)
+                return Err(
+                    (
+                        CustomExceptionCode.INVALID_CREDENTIALS,
+                        status.HTTP_401_UNAUTHORIZED,
+                    )
+                )
 
             return Ok(response)
 
         except Exception:
             logger.exception("Error en GetSession")
-            return Err(CustomExceptionCode.GET_SESSION_ERROR)
+            return Err(
+                (
+                    CustomExceptionCode.GET_SESSION_ERROR,
+                    status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            )

@@ -115,7 +115,9 @@ async def login(
                 message="Sesión obtenida exitosamente",
             )
 
-        case Err(error):
+        case Err((error_code, status_code)):
             raise APIException(
-                error_code=error,
+                error_code=error_code,
+                http_status_code=status_code,
+                log_exception=True,
             )
