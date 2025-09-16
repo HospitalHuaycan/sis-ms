@@ -17,6 +17,7 @@ dependencies = [
     "google-cloud-logging>=3.11.3",
     "psycopg2-binary>=2.9.10",
     "pydantic-settings>=2.7.1",
+    "result>=0.17.0",
     "sqlmodel>=0.0.24",
     "zeep>=4.3.2",
 ]
