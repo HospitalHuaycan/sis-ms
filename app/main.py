@@ -1,11 +1,21 @@
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Annotated
 
-from fastapi import FastAPI
+from api_exception import (
+    APIException,
+    APIResponse,
+    ResponseModel,
+    register_exception_handlers,
+)
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from result import Err, Ok
 
+from .api.requests import CredencialesRequest
 from .database import db_config
+from .services.sis_service import SISService
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -38,6 +48,15 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+# Register exception handlers globally to have the consistent
+# error handling and response structure
+register_exception_handlers(app=app, use_fallback_middleware=True)
+
+
+# Dependency injection para el servicio
+def get_sis_service() -> SISService:
+    """Dependencia para obtener el servicio SIS."""
+    return SISService()
 
 
 # Configurar CORS
@@ -76,3 +95,27 @@ async def health_check() -> dict:
         "database": "connected" if db_status else "disconnected",
         "service": "SIS-MS",
     }
+
+
+# Endpoints
+@app.post(
+    "/login",
+    tags=["SIS"],
+    responses=APIResponse.default(),  # type: ignore
+)
+async def login(
+    credenciales: CredencialesRequest,
+    service: Annotated[SISService, Depends(get_sis_service)],
+) -> ResponseModel[dict]:
+    """Obtener token de sesión para autenticación con el SIS."""
+    match await service.get_session(credenciales):
+        case Ok(value):
+            return ResponseModel[dict](
+                data={"token": value},
+                message="Sesión obtenida exitosamente",
+            )
+
+        case Err(error):
+            raise APIException(
+                error_code=error,
+            )
