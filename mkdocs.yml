@@ -1,7 +1,7 @@
-site_name: SIS-MS
+site_name: Documentación de sis-ms
 site_description: Microservicio FastAPI para consultar afiliados al SIS del Perú.
 repo_name: sis-ms
-repo_url: https://github.com/tu-organizacion/sis-ms
+site_url: https://hospitalhuaycan.github.io/sis-ms/
 
 theme:
   name: material
