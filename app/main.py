@@ -1,4 +1,5 @@
 import logging
+import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Annotated
@@ -12,9 +13,12 @@ from api_exception import (
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from result import Err, Ok
+from sqlmodel import Session
 
-from .api.requests import CredencialesRequest
+from .api.requests import ConsultaAfiliadoRequest, CredencialesRequest
 from .database import db_config
+from .models.afiliado import Afiliado
+from .models.consulta import Consulta
 from .services.sis_service import SISService
 
 # Configurar logging
@@ -120,4 +124,64 @@ async def login(
                 error_code=error_code,
                 http_status_code=status_code,
                 log_exception=True,
+            )
+
+
+@app.post(
+    "/consultar_afiliado",
+    tags=["SIS"],
+    responses=APIResponse.default(),  # type: ignore
+)
+async def consultar_afiliado(
+    consulta: ConsultaAfiliadoRequest,
+    session: Annotated[Session, Depends(db_config.get_session)],
+    service: Annotated[SISService, Depends(get_sis_service)],
+) -> ResponseModel[Afiliado]:
+    """Consultar afiliado FuaE."""
+    token = None
+    match await service.get_session(
+        CredencialesRequest(
+            usuario=os.getenv("SOAP_USER", "sis_user"),
+            clave=os.getenv("SOAP_PASSWORD", "sis_password"),
+        )
+    ):
+        case Ok(value):
+            token = value
+
+        case Err((error_code, status_code)):
+            raise APIException(
+                error_code=error_code,
+                http_status_code=status_code,
+                log_exception=True,
+            )
+
+    match await service.consultar_afiliado_fuae(token, consulta):
+        case Ok(value):
+            consulta_model = Consulta(
+                dni=consulta.dni,
+                error=None,
+                estado=value.Estado,
+                tipo_seguro=value.DescTipoSeguro,
+            )
+            session.add(consulta_model)
+            session.commit()
+            return ResponseModel[Afiliado](
+                data=value,
+                message="Consulta realizada correctamente",
+            )
+
+        case Err((error_code, status_code, message)):
+            consulta_model = Consulta(
+                dni=consulta.dni,
+                error=None,
+                estado=None,
+                tipo_seguro=None,
+            )
+            session.add(consulta_model)
+            session.commit()
+            raise APIException(
+                error_code=error_code,
+                http_status_code=status_code,
+                log_exception=True,
+                message=message,
             )

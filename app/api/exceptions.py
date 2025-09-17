@@ -4,8 +4,13 @@ from api_exception import BaseExceptionCode
 class CustomExceptionCode(BaseExceptionCode):
     """Excepciones personalizadas para el API."""
 
-    GET_SESSION_ERROR = (
+    CONSULTAR_AFILIADO_FUAE_ERROR = (
         "API-504",
+        "SOAP Fault en ConsultarAfiliadoFuaE",
+        "Error al consultar afiliado",
+    )
+    GET_SESSION_ERROR = (
+        "API-505",
         "SOAP Fault en GetSession.",
         "Error al conectar con el servicio SIS.",
     )
