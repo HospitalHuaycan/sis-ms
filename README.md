@@ -1,227 +1,110 @@
-# VSCode Dev Container: Python Development with uv and Ruff
+# SIS-MS
 
-<div align="center">
+SIS-MS es un microservicio construido con FastAPI para consultar el estado de afiliación de asegurados en el Seguro Integral de
+Salud (SIS) del Perú. El servicio encapsula la integración con el SOAP oficial de `sis.gob.pe`, entrega respuestas JSON
+estandarizadas y registra cada consulta en PostgreSQL para auditoría.
 
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+## Características clave
 
-[![Versions](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20-green.svg)](https://github.com/a5chin/python-uv)
-![code coverage](https://raw.githubusercontent.com/a5chin/python-uv/coverage-badge/coverage.svg?raw=true)
+- Integración con los métodos SOAP `GetSession` y `ConsultarAfiliadoFuaE` mediante la librería `zeep`.
+- API REST asincrónica basada en FastAPI, con documentación automática (`/docs`, `/redoc`).
+- Manejo uniforme de errores y respuestas usando el paquete [`api_exception`](https://pypi.org/project/api-exception/).
+- Persistencia del historial de consultas con `SQLModel` y migraciones gestionadas por Alembic.
+- Preparado para despliegues en Docker o servidores ASGI (Uvicorn/Gunicorn).
 
-[![Docker](https://github.com/a5chin/python-uv/actions/workflows/docker.yml/badge.svg)](https://github.com/a5chin/python-uv/actions/workflows/docker.yml)
-[![Format](https://github.com/a5chin/python-uv/actions/workflows/format.yml/badge.svg)](https://github.com/a5chin/python-uv/actions/workflows/format.yml)
-[![Lint](https://github.com/a5chin/python-uv/actions/workflows/lint.yml/badge.svg)](https://github.com/a5chin/python-uv/actions/workflows/lint.yml)
-[![Test](https://github.com/a5chin/python-uv/actions/workflows/test.yml/badge.svg)](https://github.com/a5chin/python-uv/actions/workflows/test.yml)
+## Arquitectura
 
-</div>
-
-## Overview
-This repository contains configurations to set up a Python development environment using VSCode's Dev Container feature.
-The environment includes uv, and Ruff.
-
-![demo](docs/img/ruff.gif)
-
-If the Ruff format does not work, try reloading the VS Code window.
-Specifically, you can solve this problem by following the steps below.
-
-1. Type `⌘+⇧+P` to open the command palette
-2. Type `Developer: Reload Window` in the command palette to reload the window
-
-### Contents
-- [VSCode Dev Container: Python Development with uv and Ruff](#vscode-dev-container-python-development-with-uv-and-ruff)
-  - [Overview](#overview)
-    - [Contents](#contents)
-  - [Branches](#branches)
-  - [Settings](#settings)
-  - [Dev Container](#dev-container)
-  - [GitHub Actions](#github-actions)
-  - [Ruff](#ruff)
-  - [pre-commit](#pre-commit)
-  - [pytest](#pytest)
-  - [cookiecutter](#cookiecutter)
-  - [Appendix](#appendix)
-    - [Install libraries](#install-libraries)
-    - [The structure of this repository](#the-structure-of-this-repository)
-
-## Branches
-- [main](https://github.com/a5chin/python-uv/tree/main)
-- [jupyter](https://github.com/a5chin/python-uv/tree/jupyter)
-- [rye](https://github.com/a5chin/python-uv/tree/rye)（Archived）
-
-## Settings
-- files.insertFinalNewline
-- files.trimTrailingWhitespace
-- editor.formatOnSave
-  - dockercompose
-  - dockerfile
-  - github-actions-workflow
-  - json, jsonc
-  - python
-  - toml
-  - yaml
-
-## Dev Container
-- `devcontainer.json`
-  - features
-    - hadolint
-  - extentions
-    - [charliermarsh.ruff](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff)
-    - [codezombiech.gitignore](https://marketplace.visualstudio.com/items?itemName=codezombiech.gitignore)
-    - [eamodio.gitlens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
-    - [kevinrose.vsc-python-indent](https://marketplace.visualstudio.com/items?itemName=kevinrose.vsc-python-indent)
-    - [mosapride.zenkaku](https://marketplace.visualstudio.com/items?itemName=mosapride.zenkaku)
-    - [ms-azuretools.vscode-docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)
-    - [ms-python.python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
-    - [njpwerner.autodocstring](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring)
-    - [oderwat.indent-rainbow](https://marketplace.visualstudio.com/items?itemName=oderwat.indent-rainbow)
-    - [pkief.material-icon-theme](https://marketplace.visualstudio.com/items?itemName=pkief.material-icon-theme)
-    - [redhat.vscode-yaml](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
-    - [shardulm94.trailing-spaces](https://marketplace.visualstudio.com/items?itemName=shardulm94.trailing-spaces)
-    - [tamasfe.even-better-toml](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml)
-    - [usernamehw.errorlens](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens)
-    - [yzhang.markdown-all-in-one](https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one)
-- `Dockerfile`
-  - Only Dev dependencies
-    - `pre-commit`
-    - `pyright`
-    - `pytest`
-    - `ruff`
-- `buildWithRust.Dockerfile`
-  - Use the Rust compiler when you need it!
-  - Fix dockerfile in `.devcontainer/devcontainer.json`
-
-## GitHub Actions
-- `docker.yml`
-  - Workflow to check if you can build with Docker
-- `pyright.yml`
-  - Workflow to check type
-- `test.yml`
-  - Workflow to check if all the described tests can be passed with pytest
-- `ruff.yml`
-  - Workflow to check if you can go through Formatter and Linter with Ruff
-
-## Ruff
-Ruff can be used to replace Flake8, Black, isort, pydocstyle, pyupgrade, autoflake, etc., and yet run tens to hundreds of times faster than the individual tools.
-
-To change the configuration, it is necessary to rewrite ruff.toml, and [it is recommended](https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules) to set it to ignore conflicts such as the following:
-```toml
-ignore = [
-    "COM812", "COM819",
-    "D100", "D203", "D213", "D300",
-    "E111", "E114", "E117",
-    "ISC001", "ISC002",
-    "Q000", "Q001", "Q002", "Q003",
-    "W191",
-]
+```
+[Cliente REST] --> [FastAPI] --> [Servicio SOAP SIS]
+                      |              ^
+                      |              |
+                      +--> [PostgreSQL]
 ```
 
-## pre-commit
-The `.pre-commit-config.yaml` file can contain scripts to be executed before commit.
+1. FastAPI recibe la solicitud y valida el payload con Pydantic.
+2. `SISService` obtiene (o reutiliza) el token de sesión SOAP y ejecuta la operación correspondiente.
+3. La respuesta se transforma en el modelo `Afiliado` y se devuelve dentro de un `ResponseModel`.
+4. El resultado (éxito o error) se almacena en la tabla `consulta` para trazabilidad.
 
-```sh
-# Python Formatter
-uv run ruff format .
+## Requisitos
 
-# Python Linter
-uv run ruff check . --fix
+- Python 3.10 o superior.
+- [uv](https://docs.astral.sh/uv/) para instalar dependencias.
+- PostgreSQL 13+.
+- Credenciales válidas del servicio SOAP del SIS.
 
-# Docker Linter
-hodolint Dockerfile
+## Variables de entorno
+
+| Variable        | Descripción                                                   | Valor por defecto |
+| --------------- | ------------------------------------------------------------- | ----------------- |
+| `SOAP_SIS`      | URL del WSDL del SIS.                                         | —                 |
+| `SOAP_USER`     | Usuario habilitado para `GetSession`.                          | `sis_user`        |
+| `SOAP_PASSWORD` | Contraseña asociada al usuario SOAP.                           | `sis_password`    |
+| `DB_SERVER`     | Host de PostgreSQL.                                            | `localhost`       |
+| `DB_PORT`       | Puerto de PostgreSQL.                                          | `5432`            |
+| `DB_NAME`       | Nombre de la base de datos.                                    | `sis_database`    |
+| `DB_USER`       | Usuario de base de datos.                                      | `your_username`   |
+| `DB_PASSWORD`   | Contraseña del usuario de base de datos.                       | `your_password`   |
+
+Guarda estos valores en un archivo `.env.local` y cárgalo antes de iniciar el servicio.
+
+## Instalación y ejecución local
+
+```bash
+git clone https://github.com/tu-organizacion/sis-ms.git
+cd sis-ms
+uv sync            # instala dependencias
+uv run alembic upgrade head  # crea la tabla consulta
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## pytest
-To run the test, use the following command:
-```sh
-uv run pytest
+La API estará disponible en `http://localhost:8000`.
+
+## Endpoints principales
+
+| Método | Ruta                  | Descripción                                       |
+| ------ | --------------------- | ------------------------------------------------- |
+| GET    | `/`                   | Información del microservicio y rutas útiles.     |
+| GET    | `/health`             | Verifica conectividad con la base de datos.       |
+| POST   | `/login`              | Solicita un token de sesión del SIS.              |
+| POST   | `/consultar_afiliado` | Consulta la afiliación y registra la transacción. |
+
+Consulta la [referencia completa de la API](docs/reference/index.md) para ejemplos detallados.
+
+## Comandos útiles
+
+```bash
+uv run pytest                # pruebas unitarias
+uv run ruff check .          # linter
+uv run ruff format .         # formateo automático
+uv run pyright               # análisis estático
+uv run mkdocs serve          # previsualizar la documentación
 ```
 
-## cookiecutter
-To use cookiecutter for template, use the following command:
-```sh
-uv run cookiecutter {url}
-```
-- Data Science
-  - https://github.com/drivendataorg/cookiecutter-data-science
-- Django
-  - https://github.com/cookiecutter/cookiecutter-django
-  - https://github.com/agconti/cookiecutter-django-rest
-  - https://github.com/vchaptsev/cookiecutter-django-vue
-  - https://github.com/chrisdev/wagtail-cookiecutter-foundation
-  - https://github.com/wemake-services/wemake-django-template
-- FastAPI
-  - https://github.com/fastapi/full-stack-fastapi-template
-- Flask
-  - https://github.com/cookiecutter-flask/cookiecutter-flask
-  - https://github.com/karec/cookiecutter-flask-restful
-  - https://github.com/italomaia/flask-empty
+## Docker
 
-## Appendix
-
-### Install libraries
-```sh
-# Install also include develop dependencies
-uv sync
-
-# If you do not want dev dependencies to be installed
-uv sync --no-dev
-
-# Use the add command to add dependencies to your project
-uv add {libraries}
+```bash
+docker build -t sis-ms .
+docker run --rm -p 8000:8000 --env-file .env.local sis-ms \
+  uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### The structure of this repository
+Asegúrate de exponer la base de datos al contenedor o conectarlos mediante una red interna.
+
+## Documentación
+
+La documentación técnica se genera con MkDocs Material. Para verla localmente:
+
+```bash
+uv run mkdocs serve -a 0.0.0.0:8001
 ```
-.
-├── .devcontainer/
-│   ├── devcontainer.json
-│   └── Dockerfile
-├── .github/
-│   ├── actions/
-│   │   ├── setup-git-config
-│   │   │   └── action.yml
-│   │   └── setup-python-with-uv
-│   │       └── action.yml
-│   ├── workflows/
-│   │   ├── docker.yml
-│   │   ├── pyright.yml
-│   │   ├── ruff.yml
-│   │   └── test.yml
-│   └── dependabot.yml
-├── .vscode
-│   ├── extensions.json
-│   └── settings.json
-├── tests/
-│   └── tools/
-│        ├── test__config.py
-│        ├── test__logger.py
-│        └── test__tracer.py
-├── tools/
-│   ├── config/
-│   │    ├── __init__.py
-│   │    ├── fastapi.py
-│   │    └── settings.py
-│   ├── logger/
-│   │    ├── __init__.py
-│   │    ├── color.py
-│   │    ├── googlecloud.py
-│   │    ├── local.py
-│   │    ├── logger.py
-│   │    ├── style.py
-│   │    └── type.py
-│   ├── tracer/
-│   │    ├── __init__.py
-│   │    └── timer.py
-│   └── __init__.py
-├── .dockerignore
-├── .env.local
-├── .gitignore
-├── .pre-commit-config.yaml
-├── .python-version
-├── Dockerfile
-├── pyproject.toml
-├── pyrightconfig.json
-├── pytest.ini
-├── README.md
-├── ruff.toml
-└── uv.lock
+
+Para desplegarla:
+
+```bash
+uv run mkdocs build
 ```
+
+## Licencia
+
+Este proyecto se distribuye bajo los términos de la licencia [MIT](LICENSE).

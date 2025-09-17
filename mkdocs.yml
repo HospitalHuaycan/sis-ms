@@ -1,28 +1,25 @@
-repo_name: a5chin/python-uv
-repo_url: https://github.com/a5chin/python-uv
-site_name: python-uv
-site_url: https://a5chin.github.io/a5chin
+site_name: SIS-MS
+site_description: Microservicio FastAPI para consultar afiliados al SIS del Perú.
+repo_name: sis-ms
+repo_url: https://github.com/tu-organizacion/sis-ms
 
 theme:
   name: material
-
   icon:
     repo: fontawesome/brands/github
-
   palette:
     - media: "(prefers-color-scheme: light)"
       primary: blue grey
       scheme: light
       toggle:
         icon: material/brightness-7
-        name: Switch to dark mode
+        name: Cambiar a modo oscuro
     - media: "(prefers-color-scheme: dark)"
       primary: blue grey
       scheme: slate
       toggle:
         icon: material/brightness-4
-        name: Switch to light mode
-
+        name: Cambiar a modo claro
   features:
     - content.code.copy
     - navigation.expand
@@ -44,51 +41,16 @@ markdown_extensions:
       alternate_style: true
 
 nav:
-  - Home: index.md
-  - Getting Started:
-      - getting-started/index.md
-      - Docker: getting-started/docker.md
-      - VS Code: getting-started/vscode.md
-      - Dev Container: getting-started/devcontainer.md
-  - Guides:
-      - guides/index.md
-      - uv: guides/uv.md
-      - Ruff: guides/ruff.md
-      - Pyright: guides/pyright.md
-      - pre-commit: guides/pre-commit.md
-      - Test: guides/test.md
-      - cookiecutter: guides/cookiecutter.md
-      - tools:
-          - guides/tools/index.md
-          - config: guides/tools/config.md
-          - logger: guides/tools/logger.md
-          - trace: guides/tools/tracer.md
-  - Configurations:
-      - configurations/index.md
-      - uv: configurations/uv.md
-      - Ruff: configurations/ruff.md
-      - Pyright: configurations/pyright.md
-      - pre-commit: configurations/pre-commit.md
-      - Test: configurations/test.md
-  - Usecases:
-      - usecases/index.md
-      - JupyterNotebook: usecases/jupyter.md
-      - FastAPI: usecases/fastapi.md
-      - OpenCV: usecases/opencv.md
-  - About:
-      - License: about/license.md
+  - Introducción: index.md
+  - Guía rápida: getting-started/index.md
+  - Referencia de la API:
+      - Descripción general: reference/index.md
+      - Autenticación: reference/autenticacion.md
+      - Consulta de afiliados: reference/consultas.md
+  - Arquitectura: architecture/index.md
+  - Operaciones: operations/index.md
 
 extra:
   generator: false
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/a5chin
-      name: a5chin on GitHub
-    - icon: fontawesome/brands/linkedin
-      link: https://linkedin.com/in/a5chin/
-      name: a5chin on LinkedIn
-    - icon: fontawesome/brands/x-twitter
-      link: https://x.com/a5chin
-      name: a5chin on X
 
-copyright: Copyright &copy; 2024 a5chin
+copyright: "Copyright &copy; 2024 - Proyecto SIS-MS"
