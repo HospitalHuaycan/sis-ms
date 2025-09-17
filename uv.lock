@@ -395,6 +395,7 @@ dependencies = [
     { name = "psycopg2-binary" },
     { name = "pydantic-settings" },
     { name = "result" },
+    { name = "sqlalchemy" },
     { name = "sqlmodel" },
     { name = "zeep" },
 ]
@@ -421,6 +422,7 @@ requires-dist = [
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
     { name = "pydantic-settings", specifier = ">=2.7.1" },
     { name = "result", specifier = ">=0.17.0" },
+    { name = "sqlalchemy", specifier = ">=2.0.43" },
     { name = "sqlmodel", specifier = ">=0.0.24" },
     { name = "zeep", specifier = ">=4.3.2" },
 ]

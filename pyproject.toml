@@ -18,6 +18,7 @@ dependencies = [
     "psycopg2-binary>=2.9.10",
     "pydantic-settings>=2.7.1",
     "result>=0.17.0",
+    "sqlalchemy>=2.0.43",
     "sqlmodel>=0.0.24",
     "zeep>=4.3.2",
 ]
