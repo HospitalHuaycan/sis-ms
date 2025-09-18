@@ -39,7 +39,11 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
-
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid
 nav:
   - Introducción: index.md
   - Guía rápida: getting-started/index.md
@@ -52,5 +56,7 @@ nav:
 
 extra:
   generator: false
-
+plugins:
+  - search
+  - mermaid2
 copyright: "Copyright &copy; 2024 - Proyecto SIS-MS"

@@ -15,6 +15,7 @@ dependencies = [
     "apiexception>=0.2.0",
     "fastapi[standard]>=0.116.1",
     "google-cloud-logging>=3.11.3",
+    "mkdocs-mermaid2-plugin>=1.2.2",
     "psycopg2-binary>=2.9.10",
     "pydantic-settings>=2.7.1",
     "result>=0.17.0",
