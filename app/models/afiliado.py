@@ -1,11 +1,14 @@
-from pydantic import BaseModel
+from datetime import datetime
+
+from sqlmodel import Field, SQLModel
 
 
-class Afiliado(BaseModel):
+class Afiliado(SQLModel, table=True):
     """Modelo de afiliado."""
 
-    IdError: int
-    Resultado: str
+    id: int | None = Field(default=None, primary_key=True)
+    IdError: int | None = None
+    Resultado: str | None = None
     TipoDocumento: str | None = None
     NroDocumento: str | None = None
     ApePaterno: str | None = None
@@ -34,3 +37,5 @@ class Afiliado(BaseModel):
     IdPlan: str | None = None
     IdGrupoPoblacional: str | None = None
     MsgConfidencial: str | None = None
+    ServerError: str | None
+    CreatedAt: datetime = Field(default_factory=datetime.now)
