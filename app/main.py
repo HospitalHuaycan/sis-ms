@@ -18,7 +18,6 @@ from sqlmodel import Session
 from .api.requests import ConsultaAfiliadoRequest, CredencialesRequest
 from .database import db_config
 from .models.afiliado import Afiliado
-from .models.consulta import Consulta
 from .services.sis_service import SISService
 
 # Configurar logging
@@ -156,28 +155,22 @@ async def consultar_afiliado(
             )
 
     match await service.consultar_afiliado_fuae(token, consulta):
-        case Ok(value):
-            consulta_model = Consulta(
-                dni=consulta.dni,
-                error=None,
-                estado=value.Estado,
-                tipo_seguro=value.DescTipoSeguro,
-            )
-            session.add(consulta_model)
+        case Ok(afiliado):
+            session.add(afiliado)
             session.commit()
+            session.refresh(afiliado)
             return ResponseModel[Afiliado](
-                data=value,
+                data=afiliado,
                 message="Consulta realizada correctamente",
             )
 
         case Err((error_code, status_code, message)):
-            consulta_model = Consulta(
-                dni=consulta.dni,
-                error=error_code.message,
-                estado=None,
-                tipo_seguro=None,
+            afiliado = Afiliado(
+                IdError=status_code,
+                Resultado=error_code.message,
+                ServerError=error_code.message,
             )
-            session.add(consulta_model)
+            session.add(afiliado)
             session.commit()
             raise APIException(
                 error_code=error_code,
