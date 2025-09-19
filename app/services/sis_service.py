@@ -98,7 +98,7 @@ class SISService:
             )
             response_data = Afiliado(**serialize_object(response))
             # Convertir respuesta a modelo Pydantic
-            if response_data.IdError != 0:
+            if response_data.IdError == 0:
                 return Err(
                     (
                         CustomExceptionCode.BAD_RESPONSE,
