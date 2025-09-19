@@ -5,7 +5,7 @@ from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 
 from app.database import DatabaseConfig
-from app.models.consulta import Consulta
+from app.models.afiliado import Afiliado
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
