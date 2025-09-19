@@ -173,7 +173,7 @@ async def consultar_afiliado(
         case Err((error_code, status_code, message)):
             consulta_model = Consulta(
                 dni=consulta.dni,
-                error=None,
+                error=error_code.message,
                 estado=None,
                 tipo_seguro=None,
             )
