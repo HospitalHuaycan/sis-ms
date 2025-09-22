@@ -7,7 +7,7 @@ class Afiliado(SQLModel, table=True):
     """Modelo de afiliado."""
 
     id: int | None = Field(default=None, primary_key=True)
-    IdError: int | None = None
+    IdError: str | None = None
     Resultado: str | None = None
     TipoDocumento: str | None = None
     NroDocumento: str | None = Field(default=None, index=True)
