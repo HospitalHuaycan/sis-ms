@@ -6,6 +6,7 @@ from sqlmodel import SQLModel
 
 from app.database import DatabaseConfig
 from app.models.afiliado import Afiliado
+from app.models.consulta import Consulta
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
