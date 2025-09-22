@@ -10,7 +10,7 @@ class Afiliado(SQLModel, table=True):
     IdError: int | None = None
     Resultado: str | None = None
     TipoDocumento: str | None = None
-    NroDocumento: str | None = None
+    NroDocumento: str | None = Field(default=None, index=True)
     ApePaterno: str | None = None
     ApeMaterno: str | None = None
     Nombres: str | None = None
@@ -37,5 +37,4 @@ class Afiliado(SQLModel, table=True):
     IdPlan: str | None = None
     IdGrupoPoblacional: str | None = None
     MsgConfidencial: str | None = None
-    ServerError: str | None
     CreatedAt: datetime = Field(default_factory=datetime.now)
