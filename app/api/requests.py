@@ -20,3 +20,4 @@ class ConsultaAfiliadoRequest(BaseModel):
     tipo_formato: str | None = Field(None, description="Tipo de formato")
     nro_contrato: str | None = Field(None, description="Número de contrato")
     correlativo: str | None = Field(None, description="Correlativo")
+    usuario: str = Field(..., description="Usuario que realiza la consulta")
