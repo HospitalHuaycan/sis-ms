@@ -1,4 +1,3 @@
-import logging
 import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -13,16 +12,17 @@ from api_exception import (
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from result import Err, Ok
-from sqlmodel import Session
+
+from tools.logger import Logger
 
 from .api.requests import ConsultaAfiliadoRequest, CredencialesRequest
 from .database import db_config
 from .models.afiliado import Afiliado
+from .services.afiliado_service import AfiliadoService
 from .services.sis_service import SISService
 
 # Configurar logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = Logger(__name__)
 
 
 # Contexto de vida de la aplicación
@@ -30,18 +30,19 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001
     """Contexto de vida de la aplicación."""
     # Startup
-    print("🚀 Iniciando aplicación SIS-MS...")
+    logger.info("🚀 Iniciando aplicación SIS-MS...")
 
     # Probar conexión a la base de datos PostgreSQL
     if db_config.test_connection():
-        print("✅ Conexión a PostgreSQL establecida")
+        logger.info("✅ Conexión a PostgreSQL establecida")
     else:
-        print("❌ Error al conectar con PostgreSQL")
+        logger.info("❌ Error al conectar con PostgreSQL")
 
     yield
+    db_config.close()
 
     # Shutdown
-    print("🛑 Cerrando aplicación SIS-MS...")
+    logger.info("🛑 Cerrando aplicación SIS-MS...")
 
 
 # Crear la aplicación FastAPI
@@ -60,6 +61,12 @@ register_exception_handlers(app=app, use_fallback_middleware=True)
 def get_sis_service() -> SISService:
     """Dependencia para obtener el servicio SIS."""
     return SISService()
+
+
+# Dependency injection para el servicio
+def get_afiliado_service() -> AfiliadoService:
+    """Dependencia para obtener el servicio de Afiliado."""
+    return AfiliadoService(db_session=db_config.get_session())
 
 
 # Configurar CORS
@@ -133,12 +140,12 @@ async def login(
 )
 async def consultar_afiliado(
     consulta: ConsultaAfiliadoRequest,
-    session: Annotated[Session, Depends(db_config.get_session)],
-    service: Annotated[SISService, Depends(get_sis_service)],
+    sis_service: Annotated[SISService, Depends(get_sis_service)],
+    afiliado_service: Annotated[AfiliadoService, Depends(get_afiliado_service)],
 ) -> ResponseModel[Afiliado]:
     """Consultar afiliado FuaE."""
     token = None
-    match await service.get_session(
+    match await sis_service.get_session(
         CredencialesRequest(
             usuario=os.getenv("SOAP_USER", "sis_user"),
             clave=os.getenv("SOAP_PASSWORD", "sis_password"),
@@ -154,11 +161,8 @@ async def consultar_afiliado(
                 log_exception=True,
             )
 
-    match await service.consultar_afiliado_fuae(token, consulta):
+    match await afiliado_service.consultar_afiliado(token, consulta):
         case Ok(afiliado):
-            session.add(afiliado)
-            session.commit()
-            session.refresh(afiliado)
             return ResponseModel[Afiliado](
                 data=afiliado,
                 message="Consulta realizada correctamente",
@@ -166,12 +170,9 @@ async def consultar_afiliado(
 
         case Err((error_code, status_code, message)):
             afiliado = Afiliado(
-                IdError=status_code,
+                IdError=str(status_code),
                 Resultado=error_code.message,
-                ServerError=error_code.message,
             )
-            session.add(afiliado)
-            session.commit()
             raise APIException(
                 error_code=error_code,
                 http_status_code=status_code,
