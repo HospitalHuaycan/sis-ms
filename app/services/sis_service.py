@@ -1,4 +1,3 @@
-import logging
 import os
 from functools import lru_cache
 
@@ -12,10 +11,10 @@ from zeep.helpers import serialize_object
 from app.api.exceptions import CustomExceptionCode
 from app.api.requests import ConsultaAfiliadoRequest, CredencialesRequest
 from app.models.afiliado import Afiliado
+from tools.logger import Logger
 
 # Configurar logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = Logger(__name__)
 
 
 @lru_cache
@@ -98,7 +97,7 @@ class SISService:
             )
             response_data = Afiliado(**serialize_object(response))
             # Convertir respuesta a modelo Pydantic
-            if response_data.IdError == 0:
+            if response_data.IdError != "0":
                 return Err(
                     (
                         CustomExceptionCode.BAD_RESPONSE,
