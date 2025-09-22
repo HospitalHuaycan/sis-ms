@@ -1,6 +1,7 @@
 import os
 import urllib.parse
 from collections.abc import Generator
+from functools import lru_cache
 
 from sqlmodel import Session, create_engine, select, text
 
@@ -58,8 +59,20 @@ class DatabaseConfig:
             return False
 
 
-# Instancia global de configuración de base de datos
-db_config = DatabaseConfig()
+# Singleton pattern para configuración global
+@lru_cache(maxsize=1)
+def get_database_config() -> DatabaseConfig:
+    """Obtener instancia singleton de configuración de base de datos.
+
+    Returns:
+        DatabaseConfig: Instancia de configuración
+
+    """
+    return DatabaseConfig()
+
+
+# Instancia global (retrocompatibilidad)
+db_config = get_database_config()
 
 
 def get_session() -> Generator[Session]:
