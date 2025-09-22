@@ -169,10 +169,6 @@ async def consultar_afiliado(
             )
 
         case Err((error_code, status_code, message)):
-            afiliado = Afiliado(
-                IdError=str(status_code),
-                Resultado=error_code.message,
-            )
             raise APIException(
                 error_code=error_code,
                 http_status_code=status_code,

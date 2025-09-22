@@ -95,7 +95,7 @@ class AfiliadoService:
                 self.db_session.commit()
                 return Err(
                     (
-                        CustomExceptionCode.CONSULTAR_AFILIADO_FUAE_ERROR,
+                        error_code,
                         status_code,
                         message,
                     )
