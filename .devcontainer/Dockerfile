@@ -6,6 +6,9 @@ FROM ghcr.io/astral-sh/uv:$UV_VERSION AS uv
 
 FROM mcr.microsoft.com/vscode/devcontainers/base:debian
 
+ENV TZ=America/Lima
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 ENV PYTHONDONTWRITEBYTECODE=True \
     PYTHONUNBUFFERED=True \
     UV_LINK_MODE=copy
