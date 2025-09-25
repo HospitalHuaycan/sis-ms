@@ -24,8 +24,9 @@ dependencies = [
     "zeep>=4.3.2",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
+    "commitizen>=4.9.1",
     "cookiecutter>=2.6.0",
     "cookiecutter-data-science>=2.1.0",
     "mkdocs-material>=9.5.50",
@@ -39,6 +40,14 @@ dev-dependencies = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["tools"]
+
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version_scheme = "pep440"
+version_provider = "uv"
+update_changelog_on_bump = true
 
 [build-system]
 requires = ["hatchling"]

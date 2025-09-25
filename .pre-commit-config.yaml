@@ -1,59 +1,58 @@
-default_stages: [pre-commit]
-
-repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
-    hooks:
-      - id: end-of-file-fixer
-        name: End of file fixer
-        description: "Ensure files end with a newline"
-
-      - id: check-json
-        name: Check JSON
-        description: "Check that JSON files are valid"
-
-      - id: check-toml
-        name: Check TOML
-        description: "Check that TOML files are valid"
-
-      - id: check-xml
-        name: Check XML
-        description: "Check that XML files are valid"
-
-      - id: check-yaml
-        name: Check YAML
-        description: "Check that YAML files are valid"
-        exclude: ^mkdocs\.yml$
-
-      - id: detect-private-key
-        name: Detect private key
-        description: "Detect private keys in files"
-
-      - id: trailing-whitespace
-        name: Trailing whitespace
-        description: "Remove trailing whitespace from files"
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.8
-    hooks:
-      - id: ruff
-        name: Ruff check
-        description: "Run 'ruff check' for extremely fast Python linting"
-        args: [--fix]
-
-      - id: ruff-format
-        name: Ruff format
-        description: "Run 'ruff format' for extremely fast Python formatting"
-
-  - repo: https://github.com/hadolint/hadolint
-    rev: v2.12.0
-    hooks:
-      - id: hadolint
-        name: Lint Dockerfiles
-        description: Runs hadolint to lint Dockerfiles
-        language: system
-        types: ["dockerfile"]
-        entry: hadolint
-
 ci:
   autoupdate_schedule: weekly
+default_stages:
+- pre-commit
+repos:
+- hooks:
+  - description: Ensure files end with a newline
+    id: end-of-file-fixer
+    name: End of file fixer
+  - description: Check that JSON files are valid
+    id: check-json
+    name: Check JSON
+  - description: Check that TOML files are valid
+    id: check-toml
+    name: Check TOML
+  - description: Check that XML files are valid
+    id: check-xml
+    name: Check XML
+  - description: Check that YAML files are valid
+    exclude: ^mkdocs\.yml$
+    id: check-yaml
+    name: Check YAML
+  - description: Detect private keys in files
+    id: detect-private-key
+    name: Detect private key
+  - description: Remove trailing whitespace from files
+    id: trailing-whitespace
+    name: Trailing whitespace
+  repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v5.0.0
+- hooks:
+  - args:
+    - --fix
+    description: Run 'ruff check' for extremely fast Python linting
+    id: ruff
+    name: Ruff check
+  - description: Run 'ruff format' for extremely fast Python formatting
+    id: ruff-format
+    name: Ruff format
+  repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.12.8
+- hooks:
+  - description: Runs hadolint to lint Dockerfiles
+    entry: hadolint
+    id: hadolint
+    language: system
+    name: Lint Dockerfiles
+    types:
+    - dockerfile
+  repo: https://github.com/hadolint/hadolint
+  rev: v2.12.0
+- hooks:
+  - id: commitizen
+  - id: commitizen-branch
+    stages:
+    - pre-push
+  repo: https://github.com/commitizen-tools/commitizen
+  rev: v4.9.1
