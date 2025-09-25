@@ -1,33 +1,23 @@
 # Guía de inicio rápido
 
-Esta guía explica cómo levantar SIS-MS en un entorno local para desarrollo o pruebas internas. Se asume que cuentas con acceso a
-las credenciales SOAP provistas por el SIS.
+Esta guía explica cómo preparar un entorno local de desarrollo o pruebas para
+SIS-MS. Se asume que cuentas con credenciales válidas del SIS y acceso a un
+servidor PostgreSQL.
 
 ## Requisitos previos
 
 - Python 3.10 o superior.
-- [uv](https://docs.astral.sh/uv/getting-started/installation/) como gestor de dependencias.
-- Docker (opcional) para levantar PostgreSQL rápidamente.
-- Credenciales válidas para el servicio SOAP del SIS (`SOAP_USER`, `SOAP_PASSWORD` y la URL del WSDL expuesta en `SOAP_SIS`).
+- [`uv`](https://docs.astral.sh/uv/getting-started/installation/) como gestor de
+  dependencias y ejecución.
+- PostgreSQL 13 o superior (local, en contenedor o administrado).
+- Credenciales SOAP (`SOAP_SIS`, `SOAP_USER`, `SOAP_PASSWORD`).
+- Opcional: Docker para levantar servicios auxiliares rápidamente.
 
-## Variables de entorno
+## Configuración de variables de entorno
 
-Configura las siguientes variables antes de ejecutar el servicio:
-
-| Variable         | Descripción                                                                                     | Valor por defecto |
-| ---------------- | ----------------------------------------------------------------------------------------------- | ----------------- |
-| `SOAP_SIS`       | URL del WSDL publicado por `sis.gob.pe`.                                                        | —                 |
-| `SOAP_USER`      | Usuario autorizado para el método `GetSession`.                                                 | `sis_user`        |
-| `SOAP_PASSWORD`  | Contraseña asociada al usuario SOAP.                                                            | `sis_password`    |
-| `DB_SERVER`      | Host de PostgreSQL.                                                                             | `localhost`       |
-| `DB_PORT`        | Puerto de PostgreSQL.                                                                           | `5432`            |
-| `DB_NAME`        | Base de datos donde se registran las consultas.                                                 | `sis_database`    |
-| `DB_USER`        | Usuario de la base de datos.                                                                    | `your_username`   |
-| `DB_PASSWORD`    | Contraseña del usuario de base de datos.                                                        | `your_password`   |
-
-> **Tip:** guarda esta configuración en un archivo `.env` y cárgala con tu gestor de procesos (por ejemplo, `direnv` o Docker Compose).
-
-Ejemplo de archivo `.env.local`:
+Define las variables que utiliza `DatabaseConfig` y `SISService`. Puedes
+almacenarlas en `.env.local` y reutilizarlas tanto para ejecución local como
+para contenedores.
 
 ```bash
 SOAP_SIS=https://ws.sis.gob.pe/SiSConsultasWS/Service.asmx?wsdl
@@ -40,20 +30,30 @@ DB_USER=sis_user
 DB_PASSWORD=sis_password
 ```
 
-## Instalación
+> 💡 El código también acepta `DB_HOST`; si ambos (`DB_HOST` y `DB_SERVER`) están
+> definidos, `DB_HOST` tiene prioridad.
+
+Carga este archivo con tu gestor preferido (`direnv`, `doppler`, `docker compose`
+o exportando las variables en la terminal).
+
+## Instalación del proyecto
 
 ```bash
 # Clonar el repositorio
 git clone https://github.com/tu-organizacion/sis-ms.git
 cd sis-ms
 
-# Instalar dependencias (incluye dev si estás en desarrollo)
+# Instalar dependencias (incluye extras de desarrollo)
 uv sync
 ```
 
-## Base de datos
+`uv` creará un entorno aislado en `.venv` (o en el directorio global configurado)
+y resolverá las dependencias definidas en `pyproject.toml`.
 
-Levanta PostgreSQL de la forma que prefieras. Con Docker puedes usar:
+## Base de datos y migraciones
+
+Levanta PostgreSQL en tu entorno. Con Docker puedes iniciar un contenedor
+mínimo ejecutando:
 
 ```bash
 docker run --name sis-db \
@@ -64,38 +64,63 @@ docker run --name sis-db \
   -d postgres:16
 ```
 
-Una vez configurada la conexión, aplica las migraciones iniciales:
+Aplica las migraciones iniciales con Alembic (utiliza la configuración de
+`DatabaseConfig`):
 
 ```bash
 uv run alembic upgrade head
 ```
 
-## Ejecución del servicio
+Si la conexión es correcta verás en la base de datos las tablas `consulta` y
+`afiliado` generadas a partir de los modelos `SQLModel`.
+
+## Ejecutar el servicio en modo desarrollo
 
 ```bash
-# Ejecutar en modo desarrollo con autoreload
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-La API quedará disponible en `http://localhost:8000`.
+- Documentación interactiva: <http://localhost:8000/docs>
+- ReDoc: <http://localhost:8000/redoc>
+- Chequeo de salud: <http://localhost:8000/health>
 
-- Documentación Swagger UI: `http://localhost:8000/docs`
-- Documentación ReDoc: `http://localhost:8000/redoc`
-- Verificación rápida de estado: `http://localhost:8000/health`
+`lifespan` realiza una prueba de conexión a PostgreSQL durante el arranque y
+cierra el motor al finalizar la ejecución.
 
-## Ejecutar con Docker
+## Pruebas y calidad
 
-El repositorio incluye un `Dockerfile` basado en la imagen oficial de Python y `uv`.
+Antes de publicar cambios ejecuta los siguientes comandos:
 
 ```bash
-# Construir la imagen
-docker build -t sis-ms .
-
-# Ejecutar el contenedor (requiere que la base de datos sea accesible)
-docker run --rm -p 8000:8000 \
-  --env-file .env.local \
-  sis-ms \
-  uvicorn app.main:app --host 0.0.0.0 --port 8000
+uv run pytest              # Pruebas unitarias
+uv run ruff check .        # Linter
+uv run ruff format .       # Formateo automático
+uv run pyright             # Análisis estático de tipos
 ```
 
-Recuerda publicar el puerto de la base de datos o conectar el contenedor a la misma red que PostgreSQL.
+## Documentación
+
+La documentación pública se genera con MkDocs Material. Para editarla y
+visualizar cambios en caliente:
+
+```bash
+uv run mkdocs serve -a 0.0.0.0:8001
+```
+
+Para producir el sitio estático listo para despliegue:
+
+```bash
+uv run mkdocs build
+```
+
+## Limpieza
+
+Cuando termines, puedes detener los contenedores auxiliares y borrar el entorno
+virtual si lo deseas:
+
+```bash
+docker stop sis-db && docker rm sis-db
+uv env remove  # elimina el entorno administrado por uv
+```
+
+Deja el repositorio con un `git status` limpio antes de abrir *pull requests*.

@@ -1,7 +1,9 @@
 # Referencia de la API
 
-La API REST de SIS-MS expone endpoints JSON que encapsulan la comunicación con el SOAP del SIS. Todos los endpoints devuelven
-instancias de `ResponseModel`, garantizando un contrato uniforme entre respuestas exitosas y fallidas.
+La API REST de SIS-MS encapsula la comunicación con el servicio SOAP del SIS y
+normaliza las respuestas mediante `ResponseModel`. Todos los endpoints devuelven
+el mismo contrato para facilitar el consumo por parte de clientes y manejar
+errores de forma predecible.
 
 ## Formato de respuesta
 
@@ -17,23 +19,37 @@ instancias de `ResponseModel`, garantizando un contrato uniforme entre respuesta
 
 - `data`: carga útil principal. Puede ser `null` cuando ocurre un error.
 - `status`: estado semántico (`SUCCESS`, `WARNING` o `FAIL`).
-- `message`: texto breve orientado a usuarios finales.
-- `error_code`: código único asociado a la excepción (por ejemplo `API-401`).
-- `description`: detalles adicionales o mensajes devolvidos por el SIS.
-
-Los códigos de error se definen en `CustomExceptionCode` y cubren situaciones como credenciales inválidas, errores en el SOAP y
-respuestas inválidas del servicio externo.
+- `message`: texto breve orientado al usuario.
+- `error_code`: identificador único definido en `CustomExceptionCode`.
+- `description`: detalles adicionales (por ejemplo, el mensaje original del SIS).
 
 ## Endpoints disponibles
 
-| Método | Ruta                  | Descripción                                     |
-| ------ | --------------------- | ----------------------------------------------- |
-| GET    | `/`                   | Información general del microservicio.          |
-| GET    | `/health`             | Verifica conectividad con la base de datos.     |
-| POST   | `/login`              | Obtiene un token de sesión válido del SIS.      |
-| POST   | `/consultar_afiliado` | Consulta la afiliación utilizando el token SOAP.|
+| Método | Ruta                   | Descripción |
+| ------ | --------------------- | ----------- |
+| GET    | `/`                   | Información general del microservicio. |
+| GET    | `/health`             | Verifica conectividad con la base de datos. |
+| POST   | `/login`              | Obtiene un token de sesión válido del SIS. |
+| POST   | `/consultar_afiliado` | Consulta la afiliación utilizando el token SOAP. |
 
-Las secciones siguientes describen en detalle los endpoints críticos.
+Las secciones siguientes describen los endpoints críticos y proporcionan
+payloads de ejemplo:
 
 - [Autenticación](autenticacion.md)
 - [Consulta de afiliados](consultas.md)
+
+## Códigos de error
+
+`CustomExceptionCode` define los códigos y mensajes utilizados por la API. Los
+más relevantes son:
+
+| Código    | HTTP | Descripción |
+| --------- | ---- | ----------- |
+| `API-401` | 401  | Credenciales SOAP inválidas. |
+| `API-422` | 422  | La respuesta del SIS indicó un error en la consulta. |
+| `API-503` | 503  | No se pudo conectar al servicio SOAP. |
+| `API-504` | 500/503 | Ocurrió un fault o excepción inesperada en `ConsultarAfiliadoFuaE`. |
+| `API-505` | 503  | El SIS devolvió un fault al ejecutar `GetSession`. |
+
+Cuando se produce un error, `status` pasa a `FAIL`, `data` es `null` y la respuesta
+incluye `error_code` y `description` para facilitar el diagnóstico.

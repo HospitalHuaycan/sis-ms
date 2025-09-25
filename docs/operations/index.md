@@ -1,49 +1,79 @@
 # Operación y mantenimiento
 
+Esta sección reúne lineamientos para operar SIS-MS en entornos de prueba y
+producción. Incluye comandos cotidianos, recomendaciones de monitoreo y tareas
+periódicas relacionadas con la base de datos y las credenciales del servicio
+SOAP.
+
 ## Comandos habituales
 
 ```bash
-# Ejecutar pruebas unitarias
+# Ejecutar pruebas y análisis antes de liberar cambios
 uv run pytest
-
-# Ejecutar análisis estático (Pyright) y formateo (Ruff)
-uv run pyright
 uv run ruff check .
+uv run pyright
+
+# Formatear el código fuente
 uv run ruff format .
 
-# Generar nueva migración (revisa que la BD esté configurada)
+# Generar una nueva migración (requiere base de datos configurada)
 uv run alembic revision --autogenerate -m "descripcion"
 ```
 
-## Migraciones y persistencia
+> Ejecuta `uv run alembic upgrade head` en cada despliegue para asegurar que el
+> esquema coincida con la versión del código.
 
-- `DatabaseConfig` centraliza la configuración de PostgreSQL; Alembic utiliza la misma clase en `app/migrations/env.py`, por lo que
-  es imprescindible exportar las variables de entorno antes de correr migraciones.
-- La tabla `consulta` guarda el historial de peticiones, permitiendo auditoría y métricas de uso.
-- Si necesitas tablas adicionales, define los modelos en `app/models/` y ejecútalas mediante Alembic.
+## Monitoreo y *health checks*
 
-## Logging y observabilidad
+- `GET /health` invoca `DatabaseConfig.test_connection()` y confirma la conexión
+  con PostgreSQL. Úsalo como *readiness probe* o chequeo automatizado.
+- `Logger` emite trazas coloreadas en consola por defecto. Para integraciones con
+  Google Cloud Logging utiliza `LogType.GOOGLE_CLOUD` al construir la instancia.
+- `api_exception` registra cualquier error controlado; revisa los campos
+  `error_code` y `description` en la respuesta cuando se produzca un fallo.
 
-- El servicio utiliza `logging` de la librería estándar con nivel `INFO`. Amplía la configuración según tu plataforma (Stackdriver,
-  ELK, etc.).
-- `api_exception` registra las excepciones y responde con un payload homogéneo; revisa `error_code` y `description` para depurar
-  fallos provenientes del SIS.
-- El endpoint `/health` consulta la base de datos. Úsalo en probes de Kubernetes o chequeos automáticos.
+Considera añadir métricas externas (Prometheus, Stackdriver, etc.) para medir el
+número de consultas exitosas/fallidas y los tiempos de respuesta.
 
-## Seguridad y configuración
+## Gestión de credenciales y secretos
 
-- Restringe CORS (`allow_origins`) antes de pasar a producción.
-- Protege las variables `SOAP_USER`/`SOAP_PASSWORD` mediante un gestor de secretos.
-- Considera cachear el token de sesión si el patrón de uso lo permite; el servicio ya lo mantiene en memoria mientras el proceso
-  esté activo.
+- `SOAP_USER` y `SOAP_PASSWORD` son credenciales sensibles. Almacénalas en un
+  gestor de secretos y rota los valores siguiendo las políticas de tu
+  organización.
+- Si las credenciales cambian, actualiza el servicio sin reiniciar clientes: el
+  token de sesión se solicita en cada invocación de `/consultar_afiliado`.
+- Configura certificados TLS en el *reverse proxy* que expone FastAPI.
 
-## Documentación
+## Base de datos y caché
 
-- La documentación de MkDocs vive en la carpeta `docs/`.
-- Para previsualizarla localmente ejecuta:
+- `AfiliadoService` marca cada consulta con `es_local` cuando responde desde la
+  caché del día (consulta previa registrada en `consulta`).
+- Para revisar el historial ejecuta consultas sobre la tabla `consulta`. Por
+  ejemplo, para detectar errores recientes:
 
-```bash
-uv run mkdocs serve -a 0.0.0.0:8001
-```
+  ```sql
+  SELECT created_at, numero_documento, error_code, error_description
+  FROM consulta
+  WHERE created_at > NOW() - INTERVAL '1 day'
+  ORDER BY created_at DESC;
+  ```
 
-- Publica el sitio con `uv run mkdocs build` y despliega el contenido de `site/` en tu servicio estático favorito.
+- Si necesitas eliminar datos antiguos, crea migraciones o scripts específicos;
+  evita truncar tablas manualmente para mantener auditoría.
+
+## Migraciones y despliegues
+
+1. Ejecuta las pruebas automatizadas y el análisis estático.
+2. Genera la migración con Alembic (si aplica) y revísala antes de aplicarla.
+3. Despliega el código y aplica `alembic upgrade head` en la misma transacción
+   de despliegue.
+4. Monitorea los logs en busca de fallos del SIS o errores de conexión a la base
+   de datos.
+
+## Documentación y soporte
+
+- La documentación vive en `docs/` y se publica con `uv run mkdocs build`.
+- Agrega notas operativas (p.ej. incidencias, cambios de contrato) en este mismo
+  apartado para mantener un histórico accesible a todo el equipo.
+- Si el servicio SOAP presenta inestabilidad, habilita el nivel `DEBUG` en el
+  logger para capturar los mensajes completos devueltos por `zeep`.
