@@ -23,6 +23,9 @@ RUN --mount=type=cache,target=/root/.cache \
 
 FROM python:$VARIANT-slim
 
+ENV TZ=America/Lima
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # Optional: add the application virtualenv to search path.
 ENV PATH=/app/bin:$PATH
 
