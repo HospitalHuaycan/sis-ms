@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - ".devcontainer/docker-compose.yml"
+      - ".devcontainer/compose.yml"
       - ".devcontainer/Dockerfile"
       - ".github/workflows/devcontainer.yml"
       - ".python-version"
@@ -12,7 +12,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - ".devcontainer/docker-compose.yml"
+      - ".devcontainer/compose.yml"
       - ".devcontainer/Dockerfile"
       - ".github/workflows/devcontainer.yml"
       - ".python-version"
@@ -63,4 +63,4 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Compose up vscode
-        run: docker compose -f '.devcontainer/docker-compose.yml' up -d --build 'vscode'
+        run: docker compose -f '.devcontainer/compose.yml' up -d --build 'vscode'
