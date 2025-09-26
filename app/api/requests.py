@@ -13,7 +13,7 @@ class ConsultaAfiliadoRequest(BaseModel):
     """Request para consulta de afiliado."""
 
     opcion: int = Field(..., description="Opción de consulta (entero)")
-    dni: str = Field(..., description="DNI del responsable")  # 46118717 test
+    dni: str = Field(..., description="DNI del responsable")  # 46118717
     tipo_documento: str = Field(..., description="Tipo de documento")
     nro_documento: str = Field(..., description="Número de documento")
     disa: str | None = Field(None, description="DISA")
