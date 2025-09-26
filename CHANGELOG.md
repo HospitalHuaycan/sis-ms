@@ -1,3 +1,9 @@
+## 0.2.2 (2025-09-26)
+
+### Fix
+
+- :green_heart: Fix PAT token in workflow
+
 ## 0.2.1 (2025-09-26)
 
 ### Fix
