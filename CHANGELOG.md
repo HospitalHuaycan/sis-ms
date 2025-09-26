@@ -1,3 +1,10 @@
+## 0.2.3 (2025-09-26)
+
+### Fix
+
+- :green_heart: use BODY.md?
+- :green_heart: Include CHANGELOG.md
+
 ## 0.2.2 (2025-09-26)
 
 ### Fix
